@@ -1,0 +1,865 @@
+-- VonniDScriptHub v1 - FINAL FIXED + AIMBOT TOGGLE + RENAMED
+-- Password: VonniD | Right Ctrl = Toggle GUI
+-- Click = Toggle ON/OFF | All Bugs Fixed | Aimbot Fully Toggleable
+
+local TweenService = game:GetService("TweenService")
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+local Camera = workspace.CurrentCamera
+
+-- === GLOBALS ===
+local PASSWORD_CORRECT = false
+local GUI_VISIBLE = false
+local PasswordGui = nil
+local MainGui = nil
+local ActiveScripts = {}
+
+-- === DRAG FUNCTION ===
+local function makeDraggable(frame)
+    local dragging, dragInput, dragStart, startPos
+    frame.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = input.Position
+            startPos = frame.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then dragging = false end
+            end)
+        end
+    end)
+    frame.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement then dragInput = input end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and input == dragInput then
+            local delta = input.Position - dragStart
+            frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X,
+                                      startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+end
+
+-- === RIGHT CTRL TOGGLE ===
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed or not PASSWORD_CORRECT then return end
+    if input.KeyCode == Enum.KeyCode.RightControl then
+        GUI_VISIBLE = not GUI_VISIBLE
+        if MainGui then MainGui.Enabled = GUI_VISIBLE end
+    end
+end)
+
+-- === PASSWORD SCREEN ===
+PasswordGui = Instance.new("ScreenGui")
+PasswordGui.Name = "VonniD_Pass"
+PasswordGui.ResetOnSpawn = false
+PasswordGui.Parent = PlayerGui
+PasswordGui.Enabled = true
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 400, 0, 300)
+MainFrame.Position = UDim2.new(0.5, -200, 0.5, -150)
+MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+MainFrame.BorderSizePixel = 0
+MainFrame.Parent = PasswordGui
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 12)
+corner.Parent = MainFrame
+makeDraggable(MainFrame)
+
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, 0, 0, 50)
+Title.BackgroundTransparency = 1
+Title.Text = "Von D Script"
+Title.TextColor3 = Color3.fromRGB(255, 215, 0)
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 28
+Title.Parent = MainFrame
+
+local PasswordBox = Instance.new("TextBox")
+PasswordBox.Size = UDim2.new(0, 300, 0, 40)
+PasswordBox.Position = UDim2.new(0.5, -150, 0.5, -40)
+PasswordBox.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+PasswordBox.BorderSizePixel = 0
+PasswordBox.PlaceholderText = "Enter Password..."
+PasswordBox.Text = ""
+PasswordBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+PasswordBox.Font = Enum.Font.Gotham
+PasswordBox.TextSize = 18
+PasswordBox.Parent = MainFrame
+local boxCorner = Instance.new("UICorner")
+boxCorner.CornerRadius = UDim.new(0, 8)
+boxCorner.Parent = PasswordBox
+
+local EnterButton = Instance.new("TextButton")
+EnterButton.Size = UDim2.new(0, 300, 0, 40)
+EnterButton.Position = UDim2.new(0.5, -150, 0.5, 20)
+EnterButton.BackgroundColor3 = Color3.fromRGB(255, 215, 0)
+EnterButton.Text = "Enter"
+EnterButton.TextColor3 = Color3.fromRGB(0, 0, 0)
+EnterButton.Font = Enum.Font.GothamBold
+EnterButton.TextSize = 20
+EnterButton.Parent = MainFrame
+local btnCorner = Instance.new("UICorner")
+btnCorner.CornerRadius = UDim.new(0, 8)
+btnCorner.Parent = EnterButton
+
+local ErrorLabel = Instance.new("TextLabel")
+ErrorLabel.Size = UDim2.new(1, 0, 0, 30)
+ErrorLabel.Position = UDim2.new(0, 0, 0, 50)
+ErrorLabel.BackgroundTransparency = 1
+ErrorLabel.Text = ""
+ErrorLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
+ErrorLabel.Font = Enum.Font.GothamBold
+ErrorLabel.TextSize = 16
+ErrorLabel.Parent = MainFrame
+
+-- === MAIN GUI ===
+MainGui = Instance.new("ScreenGui")
+MainGui.Name = "VonniDScriptHub v1"
+MainGui.ResetOnSpawn = false
+MainGui.Parent = PlayerGui
+MainGui.Enabled = false
+
+local MainFrame2 = Instance.new("Frame")
+MainFrame2.Size = UDim2.new(0, 600, 0, 700)
+MainFrame2.Position = UDim2.new(0.5, -300, 0.5, -350)
+MainFrame2.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+MainFrame2.BorderSizePixel = 0
+MainFrame2.Parent = MainGui
+local mainCorner = Instance.new("UICorner")
+mainCorner.CornerRadius = UDim.new(0, 16)
+mainCorner.Parent = MainFrame2
+makeDraggable(MainFrame2)
+
+-- Close Button
+local CloseButton = Instance.new("TextButton")
+CloseButton.Size = UDim2.new(0, 32, 0, 32)
+CloseButton.Position = UDim2.new(1, -40, 0, 10)
+CloseButton.BackgroundColor3 = Color3.fromRGB(220, 50, 50)
+CloseButton.Text = "X"
+CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseButton.Font = Enum.Font.GothamBold
+CloseButton.TextSize = 18
+CloseButton.Parent = MainFrame2
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(0, 8)
+closeCorner.Parent = CloseButton
+CloseButton.MouseButton1Click:Connect(function()
+    MainGui:Destroy()
+    GUI_VISIBLE = false
+end)
+
+local MainTitle = Instance.new("TextLabel")
+MainTitle.Size = UDim2.new(1, 0, 0, 60)
+MainTitle.Position = UDim2.new(0, 0, 0, 0)
+MainTitle.BackgroundTransparency = 1
+MainTitle.Text = "VonniDScriptHub v1"
+MainTitle.TextColor3 = Color3.fromRGB(255, 215, 0)
+MainTitle.Font = Enum.Font.GothamBlack
+MainTitle.TextSize = 32
+MainTitle.Parent = MainFrame2
+
+-- Tabs
+local TabFrame = Instance.new("Frame")
+TabFrame.Size = UDim2.new(1, 0, 0, 50)
+TabFrame.Position = UDim2.new(0, 0, 0, 60)
+TabFrame.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+TabFrame.BorderSizePixel = 0
+TabFrame.Parent = MainFrame2
+local tabCorner = Instance.new("UICorner")
+tabCorner.CornerRadius = UDim.new(0, 12)
+tabCorner.Parent = TabFrame
+
+local Tab1Button = Instance.new("TextButton")
+Tab1Button.Size = UDim2.new(0.5, 0, 1, 0)
+Tab1Button.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+Tab1Button.Text = "HumDMade"
+Tab1Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+Tab1Button.Font = Enum.Font.GothamBold
+Tab1Button.TextSize = 18
+Tab1Button.Parent = TabFrame
+local t1c = Instance.new("UICorner")
+t1c.CornerRadius = UDim.new(0, 12)
+t1c.Parent = Tab1Button
+
+local Tab2Button = Instance.new("TextButton")
+Tab2Button.Size = UDim2.new(0.5, 0, 1, 0)
+Tab2Button.Position = UDim2.new(0.5, 0, 0, 0)
+Tab2Button.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+Tab2Button.Text = "Random Stuff"
+Tab2Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+Tab2Button.Font = Enum.Font.GothamBold
+Tab2Button.TextSize = 18
+Tab2Button.Parent = TabFrame
+local t2c = Instance.new("UICorner")
+t2c.CornerRadius = UDim.new(0, 12)
+t2c.Parent = Tab2Button
+
+-- Content
+local Tab1Content = Instance.new("ScrollingFrame")
+Tab1Content.Size = UDim2.new(1, -20, 1, -120)
+Tab1Content.Position = UDim2.new(0, 10, 0, 110)
+Tab1Content.BackgroundTransparency = 1
+Tab1Content.ScrollBarThickness = 6
+Tab1Content.CanvasSize = UDim2.new(0, 0, 0, 0)
+Tab1Content.Parent = MainFrame2
+Tab1Content.Visible = true
+
+local Tab1Layout = Instance.new("UIListLayout")
+Tab1Layout.Padding = UDim.new(0, 8)
+Tab1Layout.Parent = Tab1Content
+
+local Tab2Content = Instance.new("ScrollingFrame")
+Tab2Content.Size = UDim2.new(1, -20, 1, -120)
+Tab2Content.Position = UDim2.new(0, 10, 0, 110)
+Tab2Content.BackgroundTransparency = 1
+Tab2Content.ScrollBarThickness = 6
+Tab2Content.CanvasSize = UDim2.new(0, 0, 0, 0)
+Tab2Content.Parent = MainFrame2
+Tab2Content.Visible = false
+
+local Tab2Layout = Instance.new("UIListLayout")
+Tab2Layout.Padding = UDim.new(0, 8)
+Tab2Layout.Parent = Tab2Content
+
+-- Search
+local SearchBox = Instance.new("TextBox")
+SearchBox.Size = UDim2.new(1, -20, 0, 40)
+SearchBox.Position = UDim2.new(0, 10, 1, -50)
+SearchBox.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+SearchBox.BorderSizePixel = 0
+SearchBox.PlaceholderText = "Search Features..."
+SearchBox.Text = ""
+SearchBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+SearchBox.Font = Enum.Font.Gotham
+SearchBox.TextSize = 18
+SearchBox.Parent = MainFrame2
+local searchCorner = Instance.new("UICorner")
+searchCorner.CornerRadius = UDim.new(0, 8)
+searchCorner.Parent = SearchBox
+
+-- === TAB SWITCHING ===
+local currentTab = Tab1Content
+local function switchTab(tabContent)
+    currentTab.Visible = false
+    currentTab = tabContent
+    currentTab.Visible = true
+end
+Tab1Button.MouseButton1Click:Connect(function() switchTab(Tab1Content) end)
+Tab2Button.MouseButton1Click:Connect(function() switchTab(Tab2Content) end)
+
+-- === TOGGLE SYSTEM ===
+local function toggleScript(scriptData, button)
+    local key = scriptData.Name
+    if ActiveScripts[key] then
+        if ActiveScripts[key].Stop then
+            ActiveScripts[key].Stop()
+        end
+        ActiveScripts[key] = nil
+        button.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+    else
+        local stopFunc = scriptData.Run()
+        ActiveScripts[key] = { Stop = stopFunc or function() end }
+        button.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
+    end
+end
+
+-- === SCRIPT DATA - TAB 1 (HumDMade) ===
+local Tab1Scripts = {
+    -- === ORIGINAL OLD SCRIPTS ===
+    {
+        Name = "Aimbot (Toggle)",
+        Description = "Snaps to nearest player head. FE aim assist.",
+        Run = function()
+            local conn
+            local enabled = false
+            conn = RunService.RenderStepped:Connect(function()
+                if not enabled then return end
+                local closest = nil
+                local dist = math.huge
+                for _, p in ipairs(Players:GetPlayers()) do
+                    if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("Head") then
+                        local d = (p.Character.Head.Position - Camera.CFrame.Position).Magnitude
+                        if d < dist then
+                            closest = p.Character.Head
+                            dist = d
+                        end
+                    end
+                end
+                if closest then
+                    Camera.CFrame = CFrame.lookAt(Camera.CFrame.Position, closest.Position)
+                end
+            end)
+            enabled = true
+            return function()
+                enabled = false
+                if conn then conn:Disconnect() end
+            end
+        end
+    },
+    {
+        Name = "m249",
+        Description = "Removes reload delay on M249.",
+        Run = function()
+            local aux = loadstring(game:HttpGet("https://raw.githubusercontent.com/Upbolt/Hydroxide/revision/ohaux.lua"))()
+            local gun = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("M249")
+            if not gun then return end
+            local scriptPath = gun:FindFirstChild("GunScript_Local")
+            if not scriptPath then return end
+            local closure = aux.searchClosure(scriptPath, "Reload", 6, {"LimitedAmmoEnabled", "AmmoPerMag", "IsPlaying", "Stop", "TweenInfo", "new"})
+            if closure then debug.setupvalue(closure, 6, 0) end
+        end
+    },
+    {
+        Name = "Boomstick Reload Extra Ammo",
+        Description = "Removes reload delay on Boom Stick.",
+        Run = function()
+            local aux = loadstring(game:HttpGet("https://raw.githubusercontent.com/Upbolt/Hydroxide/revision/ohaux.lua"))()
+            local gun = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Boom Stick")
+            if not gun then return end
+            local scriptPath = gun:FindFirstChild("GunScript_Local")
+            if not scriptPath then return end
+            local closure = aux.searchClosure(scriptPath, "Reload", 6, {"LimitedAmmoEnabled", "AmmoPerMag", "IsPlaying", "Stop", "TweenInfo", "new"})
+            if closure then debug.setupvalue(closure, 6, 0) end
+        end
+    },
+    {
+        Name = "Uzi (Infinite Ammo)",
+        Description = "Infinite ammo for Uzi.",
+        Run = function()
+            local aux = loadstring(game:HttpGet("https://raw.githubusercontent.com/Upbolt/Hydroxide/revision/ohaux.lua"))()
+            local gun = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Uzi")
+            if not gun then return end
+            local scriptPath = gun:FindFirstChild("GunScript_Local")
+            if not scriptPath then return end
+            local closure = aux.searchClosure(scriptPath, "UpdateGUI", 2, {"Frame","Mag","Fill","UDim2","new",aux.placeholderUserdataConstant})
+            if closure then debug.setupvalue(closure, 2, 9999) end
+        end
+    },
+    {
+        Name = "Give Admin Gun",
+        Description = "Gives Admin Gun from ReplicatedStorage.",
+        Run = function()
+            local weapons = ReplicatedStorage:FindFirstChild("Weapons")
+            local gun = weapons and weapons:FindFirstChild("Admin Gun")
+            if gun then
+                local clone = gun:Clone()
+                clone.Parent = LocalPlayer.Backpack
+            end
+        end
+    },
+    {
+        Name = "Give Golden Hammer",
+        Description = "Gives Golden Hammer.",
+        Run = function()
+            local weapons = ReplicatedStorage:FindFirstChild("Weapons")
+            local hammer = weapons and weapons:FindFirstChild("Golden Hammer")
+            if hammer then
+                local clone = hammer:Clone()
+                clone.Parent = LocalPlayer.Backpack
+            end
+        end
+    },
+    {
+        Name = "Worth Points 300k",
+        Description = "Sets worth to 300,000.",
+        Run = function()
+            local aux = loadstring(game:HttpGet("https://raw.githubusercontent.com/Upbolt/Hydroxide/revision/ohaux.lua"))()
+            local scriptPath = LocalPlayer.PlayerGui:WaitForChild("GUI_GAME"):WaitForChild("CLIENT_WORTH")
+            local closure = aux.searchClosure(scriptPath, "Unnamed function", 3, {"INFO","WORTH_COST","script",nil,"SOUND_CART","Play","SOUND_ERROR"})
+            if closure then debug.setupvalue(closure, 3, 300000) end
+        end
+    },
+    {
+        Name = "Infinite Yield",
+        Description = "Loads Infinite Yield admin.",
+        Run = function()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))()
+        end
+    },
+    {
+        Name = "Speed",
+        Description = "Click to set walk speed (0-500).",
+        Run = function()
+            local frame = Instance.new("Frame")
+            frame.Size = UDim2.new(1, -10, 0, 100)
+            frame.BackgroundColor3 = Color3.fromRGB(85, 85, 85)
+            frame.Parent = Tab1Content
+            local input = Instance.new("TextBox")
+            input.Size = UDim2.new(0, 180, 0, 35)
+            input.Position = UDim2.new(0, 15, 0, 40)
+            input.PlaceholderText = "Speed"
+            input.Parent = frame
+            local apply = Instance.new("TextButton")
+            apply.Size = UDim2.new(0, 80, 0, 35)
+            apply.Position = UDim2.new(0, 205, 0, 40)
+            apply.Text = "Apply"
+            apply.Parent = frame
+            apply.MouseButton1Click:Connect(function()
+                local num = tonumber(input.Text)
+                if num and num >= 0 and num <= 500 then
+                    LocalPlayer.Character.Humanoid.WalkSpeed = num
+                end
+            end)
+        end
+    },
+    {
+        Name = "Jump Power",
+        Description = "Click to set jump power (0-300).",
+        Run = function()
+            local frame = Instance.new("Frame")
+            frame.Size = UDim2.new(1, -10, 0, 100)
+            frame.BackgroundColor3 = Color3.fromRGB(85, 85, 85)
+            frame.Parent = Tab1Content
+            local input = Instance.new("TextBox")
+            input.Size = UDim2.new(0, 180, 0, 35)
+            input.Position = UDim2.new(0, 15, 0, 40)
+            input.PlaceholderText = "Jump"
+            input.Parent = frame
+            local apply = Instance.new("TextButton")
+            apply.Size = UDim2.new(0, 80, 0, 35)
+            apply.Position = UDim2.new(0, 205, 0, 40)
+            apply.Text = "Apply"
+            apply.Parent = frame
+            apply.MouseButton1Click:Connect(function()
+                local num = tonumber(input.Text)
+                if num and num >= 0 and num <= 300 then
+                    LocalPlayer.Character.Humanoid.JumpPower = num
+                end
+            end)
+        end
+    },
+
+    -- === NEW HACKING SCRIPTS (FIXED & FULLY TOGGLEABLE) ===
+    {
+        Name = "Advanced Aimbot (Toggle)",
+        Description = "Smooth aim with FOV circle. Targets Head → Neck → Body.",
+        Run = function()
+            local conn1, conn2
+            local enabled = false
+            local fov = 150
+            local smoothness = 0.15
+
+            local fovCircle = Drawing.new("Circle")
+            fovCircle.Radius = fov
+            fovCircle.Color = Color3.fromRGB(255, 0, 0)
+            fovCircle.Thickness = 2
+            fovCircle.Filled = false
+            fovCircle.Transparency = 0.8
+            fovCircle.Visible = false
+
+            local function getTarget()
+                local closest = nil
+                local closestDist = math.huge
+                for _, player in ipairs(Players:GetPlayers()) do
+                    if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("Humanoid") and player.Character.Humanoid.Health > 0 then
+                        local root = player.Character:FindFirstChild("HumanoidRootPart")
+                        if root then
+                            local screenPos, onScreen = Camera:WorldToViewportPoint(root.Position)
+                            if onScreen then
+                                local dist = (Vector2.new(screenPos.X, screenPos.Y) - Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/2)).Magnitude
+                                if dist < fov and dist < closestDist then
+                                    closest = player
+                                    closestDist = dist
+                                end
+                            end
+                        end
+                    end
+                end
+                return closest
+            end
+
+            local function getBestPart(char)
+                return char:FindFirstChild("Head") or char:FindFirstChild("Neck") or char:FindFirstChild("HumanoidRootPart")
+            end
+
+            conn1 = RunService.RenderStepped:Connect(function()
+                if not enabled then
+                    fovCircle.Visible = false
+                    return
+                end
+                fovCircle.Position = Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/2)
+                fovCircle.Visible = true
+                local target = getTarget()
+                if target and target.Character then
+                    local part = getBestPart(target.Character)
+                    if part then
+                        local current = Camera.CFrame
+                        local targetCFrame = CFrame.new(current.Position, part.Position)
+                        Camera.CFrame = current:Lerp(targetCFrame, smoothness)
+                    end
+                end
+            end)
+
+            conn2 = UserInputService.InputChanged:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseWheel and enabled then
+                    fov = math.clamp(fov + (input.Position.Z > 0 and 20 or -20), 50, 300)
+                    fovCircle.Radius = fov
+                end
+            end)
+
+            enabled = true
+            return function()
+                enabled = false
+                if conn1 then conn1:Disconnect() end
+                if conn2 then conn2:Disconnect() end
+                if fovCircle then fovCircle:Remove() end
+            end
+        end
+    },
+    {
+        Name = "Silent Aim (Toggle)",
+        Description = "Bullets hit nearest player in FOV without moving camera.",
+        Run = function()
+            local conn
+            local enabled = false
+            local fov = 200
+            local oldNamecall
+
+            local function getClosestPlayer()
+                local closest = nil
+                local closestDist = math.huge
+                for _, player in ipairs(Players:GetPlayers()) do
+                    if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("Humanoid") and player.Character.Humanoid.Health > 0 then
+                        local root = player.Character:FindFirstChild("HumanoidRootPart")
+                        if root then
+                            local screenPos, onScreen = Camera:WorldToViewportPoint(root.Position)
+                            if onScreen then
+                                local dist = (Vector2.new(screenPos.X, screenPos.Y) - Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/2)).Magnitude
+                                if dist < fov and dist < closestDist then
+                                    closest = player
+                                    closestDist = dist
+                                end
+                            end
+                        end
+                    end
+                end
+                return closest
+            end
+
+            local function getBestPart(char)
+                return char:FindFirstChild("Head") or char:FindFirstChild("UpperTorso") or char:FindFirstChild("HumanoidRootPart")
+            end
+
+            oldNamecall = getrawmetatable(game).__namecall
+            getrawmetatable(game).__namecall = newcclosure(function(self, ...)
+                local method = getnamecallmethod()
+                local args = {...}
+                if enabled and (method == "FireServer" or method == "InvokeServer") then
+                    local remoteName = tostring(self)
+                    if remoteName:find("Fire") or remoteName:find("Shoot") or remoteName:find("Gun") then
+                        local target = getClosestPlayer()
+                        if target and target.Character then
+                            local part = getBestPart(target.Character)
+                            if part then
+                                if typeof(args[1]) == "Vector3" then
+                                    args[1] = part.Position + Vector3.new(0, 0.5, 0)
+                                elseif typeof(args[2]) == "Vector3" then
+                                    args[2] = part.Position
+                                end
+                            end
+                        end
+                    end
+                end
+                return oldNamecall(self, unpack(args))
+            end)
+
+            local fovCircle = Drawing.new("Circle")
+            fovCircle.Radius = fov
+            fovCircle.Color = Color3.fromRGB(255, 100, 100)
+            fovCircle.Thickness = 1.5
+            fovCircle.Filled = false
+            fovCircle.Transparency = 0.7
+            fovCircle.Visible = false
+
+            conn = RunService.RenderStepped:Connect(function()
+                if not enabled then
+                    fovCircle.Visible = false
+                    return
+                end
+                fovCircle.Position = Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/2)
+                fovCircle.Visible = true
+            end)
+
+            enabled = true
+            return function()
+                enabled = false
+                if conn then conn:Disconnect() end
+                if fovCircle then fovCircle:Remove() end
+                getrawmetatable(game).__namecall = oldNamecall
+            end
+        end
+    },
+    {
+        Name = "Zombie ESP (Toggle)",
+        Description = "Shows boxes, names, health, and distance for zombies only.",
+        Run = function()
+            local conn
+            local enabled = false
+            local espData = {}
+
+            local function createBox()
+                local box = Drawing.new("Square")
+                box.Thickness = 2
+                box.Filled = false
+                box.Color = Color3.fromRGB(0, 255, 0)
+                box.Visible = false
+                return box
+            end
+
+            local function createText()
+                local text = Drawing.new("Text")
+                text.Size = 14
+                text.Color = Color3.fromRGB(0, 255, 0)
+                text.Center = true
+                text.Outline = true
+                text.Font = 2
+                text.Visible = false
+                return text
+            end
+
+            local function updateESP()
+                for _, data in pairs(espData) do
+                    data.box.Visible = false
+                    data.name.Visible = false
+                    data.health.Visible = false
+                    data.dist.Visible = false
+                end
+
+                if not enabled then return end
+
+                local cam = Camera
+                local localPos = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") and LocalPlayer.Character.HumanoidRootPart.Position
+
+                for _, zombie in ipairs(workspace:GetChildren()) do
+                    if zombie.Name == "Zombie" and zombie:FindFirstChild("Humanoid") and zombie:FindFirstChild("HumanoidRootPart") and zombie.Humanoid.Health > 0 then
+                        local root = zombie.HumanoidRootPart
+                        local hum = zombie.Humanoid
+
+                        local screenPos, onScreen = cam:WorldToViewportPoint(root.Position)
+                        if onScreen then
+                            local data = espData[zombie] or {
+                                box = createBox(),
+                                name = createText(),
+                                health = createText(),
+                                dist = createText()
+                            }
+                            espData[zombie] = data
+
+                            local height = (cam:WorldToViewportPoint(root.Position - Vector3.new(0, 3, 0)).Y - cam:WorldToViewportPoint(root.Position + Vector3.new(0, 4, 0)).Y) / 2
+                            local width = height * 0.6
+                            data.box.Size = Vector2.new(width, height * 1.8)
+                            data.box.Position = Vector2.new(screenPos.X - data.box.Size.X/2, screenPos.Y - data.box.Size.Y/2)
+                            data.box.Visible = true
+
+                            data.name.Text = zombie.Name
+                            data.name.Position = Vector2.new(screenPos.X, screenPos.Y - data.box.Size.Y/2 - 20)
+                            data.name.Visible = true
+
+                            local healthText = math.floor(hum.Health) .. "/" .. math.floor(hum.MaxHealth)
+                            data.health.Text = healthText
+                            data.health.Position = Vector2.new(screenPos.X, screenPos.Y + data.box.Size.Y/2 + 5)
+                            data.health.Visible = true
+
+                            if localPos then
+                                local dist = math.floor((root.Position - localPos).Magnitude)
+                                data.dist.Text = dist .. " studs"
+                                data.dist.Position = Vector2.new(screenPos.X, screenPos.Y + data.box.Size.Y/2 + 20)
+                                data.dist.Visible = true
+                            end
+                        end
+                    end
+                end
+            end
+
+            conn = RunService.RenderStepped:Connect(updateESP)
+            enabled = true
+
+            return function()
+                enabled = false
+                if conn then conn:Disconnect() end
+                for _, data in pairs(espData) do
+                    data.box:Remove()
+                    data.name:Remove()
+                    data.health:Remove()
+                    data.dist:Remove()
+                end
+                espData = {}
+            end
+        end
+    },
+    {
+        Name = "Hitbox Expander (Toggle)",
+        Description = "Expands enemy hitboxes (Head/Torso) for easier hits.",
+        Run = function()
+            local conn
+            local enabled = false
+            local expandSize = 5
+            local originalSizes = {}
+            local originalTransparencies = {}
+
+            local function getTargetParts(char)
+                local parts = {}
+                local head = char:FindFirstChild("Head")
+                local torso = char:FindFirstChild("UpperTorso") or char:FindFirstChild("Torso")
+                if head then table.insert(parts, head) end
+                if torso then table.insert(parts, torso) end
+                return parts
+            end
+
+            local function expandHitbox(part)
+                if not originalSizes[part] then
+                    originalSizes[part] = part.Size
+                    originalTransparencies[part] = part.Transparency
+                end
+                part.Size = originalSizes[part] * expandSize
+                part.Transparency = 0.7
+                part.CanCollide = false
+            end
+
+            local function restoreHitbox(part)
+                if originalSizes[part] then
+                    part.Size = originalSizes[part]
+                    part.Transparency = originalTransparencies[part]
+                end
+            end
+
+            conn = RunService.Heartbeat:Connect(function()
+                if not enabled then return end
+                for _, player in ipairs(Players:GetPlayers()) do
+                    if player ~= LocalPlayer and player.Character then
+                        local parts = getTargetParts(player.Character)
+                        for _, part in ipairs(parts) do
+                            if part and part.Parent then
+                                expandHitbox(part)
+                            end
+                        end
+                    end
+                end
+            end)
+
+            local function cleanup()
+                for part, _ in pairs(originalSizes) do
+                    if part and part.Parent then
+                        restoreHitbox(part)
+                    end
+                end
+                originalSizes = {}
+                originalTransparencies = {}
+            end
+
+            enabled = true
+            return function()
+                enabled = false
+                if conn then conn:Disconnect() end
+                cleanup()
+            end
+        end
+    }
+}
+
+-- === TAB 2 (Random Stuff) - RENAMED + FIXED ===
+local Tab2Scripts = {
+    { Name = "God Mode Visual", Description = "Infinite health.", Run = function() LocalPlayer.Character.Humanoid.MaxHealth = math.huge; LocalPlayer.Character.Humanoid.Health = math.huge end },
+    { Name = "Kill All Zombies", Description = "Kills all zombies.", Run = function() for _, z in ipairs(workspace.Zombies:GetChildren()) do if z:FindFirstChild("Humanoid") then z.Humanoid.Health = 0 end end end },
+    { Name = "Super Jump", Description = "Jump 200.", Run = function() LocalPlayer.Character.Humanoid.JumpPower = 200 end },
+    { Name = "Invisible", Description = "Makes you invisible.", Run = function() for _, p in ipairs(LocalPlayer.Character:GetDescendants()) do if p:IsA("BasePart") then p.Transparency = 1 end end end },
+    { Name = "Fast Reload All", Description = "Instant reload.", Run = function() for _, t in ipairs(LocalPlayer.Backpack:GetChildren()) do if t:FindFirstChild("GunScript_Local") then debug.setupvalue(t.GunScript_Local, 6, 0) end end end },
+    { Name = "Nuke Server", Description = "No Nuke .", Run = function() LocalPlayer.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.RunningNoPhysics, false) end },
+    { Name = "Auto Heal", Description = "Heals every 5s.", Run = function() local conn; conn = task.spawn(function() while task.wait(5) do LocalPlayer.Character.Humanoid.Health = LocalPlayer.Character.Humanoid.MaxHealth end end); return function() if conn then conn:Disconnect() end end end },
+    { Name = "No Gravity", Description = "Low gravity.", Run = function() workspace.Gravity = 50 end },
+    { Name = "Day Time", Description = "Sets to day.", Run = function() game.Lighting.TimeOfDay = "12:00:00" end },
+    { Name = "Boost Damage", Description = "100 damage.", Run = function() for _, t in ipairs(LocalPlayer.Backpack:GetChildren()) do if t:FindFirstChild("GunScript_Local") then debug.setupvalue(t.GunScript_Local, 1, 100) end end end },
+    { Name = "Freeze Zombies Visual", Description = "Zombies can't move.", Run = function() for _, z in ipairs(workspace.Zombies:GetChildren()) do if z:FindFirstChild("Humanoid") then z.Humanoid.WalkSpeed = 0 end end end },
+    { Name = "Open all doors", Description = "Opens all doors.", Run = function() for _, d in ipairs(workspace.Doors:GetChildren()) do d.Locked = false end end },
+    { Name = "Random TP", Description = "Teleports randomly.", Run = function() LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(math.random(-1000,1000), 10, math.random(-1000,1000)) end },
+    { Name = "Spawn Barricade", Description = "Spawns barricade.", Run = function() local b = ReplicatedStorage:FindFirstChild("Barricade"):Clone(); b.Parent = workspace; b.CFrame = LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.new(0,0,-5) end },
+    { Name = "Heal Team", Description = "Heals teammates.", Run = function() for _, p in ipairs(Players:GetPlayers()) do if p.Team == LocalPlayer.Team and p.Character then p.Character.Humanoid.Health = p.Character.Humanoid.MaxHealth end end end },
+    { Name = "Fast Fire Rate", Description = "0.05s fire rate.", Run = function() for _, t in ipairs(LocalPlayer.Backpack:GetChildren()) do if t:FindFirstChild("GunScript_Local") then debug.setupvalue(t.GunScript_Local, 4, 0.05) end end end },
+    { Name = "No Recoil", Description = "Removes recoil.", Run = function() for _, t in ipairs(LocalPlayer.Backpack:GetChildren()) do if t:FindFirstChild("GunScript_Local") then debug.setupvalue(t.GunScript_Local, 5, 0) end end end },
+    { Name = "Teleport to Player broken*", Description = "TP to random player.", Run = function() local p = Players:GetPlayers()[math.random(2,#Players:GetPlayers())]; LocalPlayer.Character.HumanoidRootPart.CFrame = p.Character.HumanoidRootPart.CFrame end },
+    { Name = "Spawn Zombie *Patched*", Description = "Spawns zombie.", Run = function() local z = ReplicatedStorage:FindFirstChild("Zombie"):Clone(); z.Parent = workspace; z.HumanoidRootPart.CFrame = LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.new(0,0,-5) end },
+    { Name = "Wall Vision", Description = "See through walls.", Run = function() for _, w in ipairs(workspace:GetChildren()) do if w:IsA("Part") and w.Name == "Wall" then w.Transparency = 0.5 end end end },
+    { Name = "TP to Spawn?", Description = "Back to spawn.", Run = function() LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(0,10,0) end },
+    { Name = "Increase Fire Rate", Description = "Faster shooting.", Run = function() for _, t in ipairs(LocalPlayer.Backpack:GetChildren()) do if t:FindFirstChild("GunScript_Local") then debug.setupvalue(t.GunScript_Local, 4, 0.01) end end end },
+    { Name = "Random Visual Weap", Description = "Spawns random visual weapon.", Run = function() local w = ReplicatedStorage.Weapons:GetChildren()[math.random(1,#ReplicatedStorage.Weapons:GetChildren())]; w:Clone().Parent = LocalPlayer.Backpack end }
+}
+
+-- === CREATE BUTTONS ===
+local function createButtons(tabContent, scripts, layout)
+    local buttons = {}
+    for i, s in ipairs(scripts) do
+        local btn = Instance.new("TextButton")
+        btn.Size = UDim2.new(1, -10, 0, 60)
+        btn.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+        btn.Text = s.Name
+        btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        btn.Font = Enum.Font.GothamBold
+        btn.TextSize = 18
+        btn.Parent = tabContent
+        local c = Instance.new("UICorner")
+        c.CornerRadius = UDim.new(0, 8)
+        c.Parent = btn
+
+        local desc = Instance.new("TextLabel")
+        desc.Size = UDim2.new(1, -10, 0, 50)
+        desc.BackgroundTransparency = 1
+        desc.Text = s.Description
+        desc.TextColor3 = Color3.fromRGB(200, 200, 200)
+        desc.Font = Enum.Font.Gotham
+        desc.TextSize = 14
+        desc.TextWrapped = true
+        desc.Visible = false
+        desc.Parent = tabContent
+
+        btn.MouseButton1Click:Connect(function()
+            toggleScript(s, btn)
+            desc.Visible = not desc.Visible
+        end)
+
+        table.insert(buttons, {btn, desc})
+    end
+    return buttons
+end
+
+local Tab1Buttons = createButtons(Tab1Content, Tab1Scripts, Tab1Layout)
+local Tab2Buttons = createButtons(Tab2Content, Tab2Scripts, Tab2Layout)
+
+-- === CANVAS UPDATE ===
+local function updateCanvas(frame, layout)
+    layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        frame.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 100)
+    end)
+end
+updateCanvas(Tab1Content, Tab1Layout)
+updateCanvas(Tab2Content, Tab2Layout)
+
+-- === SEARCH ===
+SearchBox.Changed:Connect(function(p)
+    if p ~= "Text" then return end
+    local query = SearchBox.Text:lower()
+    local btns = currentTab == Tab1Content and Tab1Buttons or Tab2Buttons
+    for _, b in ipairs(btns) do
+        local visible = b[1].Text:lower():find(query) ~= nil
+        b[1].Visible = visible
+        b[2].Visible = visible and b[2].Visible
+    end
+end)
+
+-- === PASSWORD ===
+EnterButton.MouseButton1Click:Connect(function()
+    if PasswordBox.Text == "VonniD" then
+        PasswordGui:Destroy()
+        MainGui.Enabled = true
+        GUI_VISIBLE = true
+        PASSWORD_CORRECT = true
+    else
+        ErrorLabel.Text = "Incorrect Password"
+        task.wait(2)
+        ErrorLabel.Text = ""
+    end
+end)
