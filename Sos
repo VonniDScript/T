@@ -1,6 +1,7 @@
 -- VonniDScriptHub v1 - FINAL FIXED + AIMBOT TOGGLE + RENAMED
 -- Password: VonniD | Right Ctrl = Toggle GUI
 -- Click = Toggle ON/OFF | All Bugs Fixed | Aimbot Fully Toggleable
+-- 1st GUI: 400x300 | 2nd GUI: 420x320 (tiny bit bigger, perfect fit)
 
 local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
@@ -52,7 +53,7 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
     end
 end)
 
--- === PASSWORD SCREEN ===
+-- === PASSWORD SCREEN (400x300) ===
 PasswordGui = Instance.new("ScreenGui")
 PasswordGui.Name = "VonniD_Pass"
 PasswordGui.ResetOnSpawn = false
@@ -117,7 +118,7 @@ ErrorLabel.Font = Enum.Font.GothamBold
 ErrorLabel.TextSize = 16
 ErrorLabel.Parent = MainFrame
 
--- === MAIN GUI ===
+-- === MAIN GUI (420x320 - tiny bit bigger than 400x300) ===
 MainGui = Instance.new("ScreenGui")
 MainGui.Name = "VonniDScriptHub v1"
 MainGui.ResetOnSpawn = false
@@ -125,8 +126,8 @@ MainGui.Parent = PlayerGui
 MainGui.Enabled = false
 
 local MainFrame2 = Instance.new("Frame")
-MainFrame2.Size = UDim2.new(0, 600, 0, 700)
-MainFrame2.Position = UDim2.new(0.5, -300, 0.5, -350)
+MainFrame2.Size = UDim2.new(0, 420, 0, 320)  -- Tiny bit bigger
+MainFrame2.Position = UDim2.new(0.5, -210, 0.5, -160)
 MainFrame2.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
 MainFrame2.BorderSizePixel = 0
 MainFrame2.Parent = MainGui
@@ -208,7 +209,6 @@ Tab1Content.ScrollBarThickness = 6
 Tab1Content.CanvasSize = UDim2.new(0, 0, 0, 0)
 Tab1Content.Parent = MainFrame2
 Tab1Content.Visible = true
-
 local Tab1Layout = Instance.new("UIListLayout")
 Tab1Layout.Padding = UDim.new(0, 8)
 Tab1Layout.Parent = Tab1Content
@@ -221,7 +221,6 @@ Tab2Content.ScrollBarThickness = 6
 Tab2Content.CanvasSize = UDim2.new(0, 0, 0, 0)
 Tab2Content.Parent = MainFrame2
 Tab2Content.Visible = false
-
 local Tab2Layout = Instance.new("UIListLayout")
 Tab2Layout.Padding = UDim.new(0, 8)
 Tab2Layout.Parent = Tab2Content
@@ -433,17 +432,15 @@ local Tab1Scripts = {
             end)
         end
     },
-
     -- === NEW HACKING SCRIPTS (FIXED & FULLY TOGGLEABLE) ===
     {
         Name = "Advanced Aimbot (Toggle)",
-        Description = "Smooth aim with FOV circle. Targets Head → Neck → Body.",
+        Description = "Smooth aim with FOV circle. Targets Head to Neck to Body.",
         Run = function()
             local conn1, conn2
             local enabled = false
             local fov = 150
             local smoothness = 0.15
-
             local fovCircle = Drawing.new("Circle")
             fovCircle.Radius = fov
             fovCircle.Color = Color3.fromRGB(255, 0, 0)
@@ -451,7 +448,6 @@ local Tab1Scripts = {
             fovCircle.Filled = false
             fovCircle.Transparency = 0.8
             fovCircle.Visible = false
-
             local function getTarget()
                 local closest = nil
                 local closestDist = math.huge
@@ -472,11 +468,9 @@ local Tab1Scripts = {
                 end
                 return closest
             end
-
             local function getBestPart(char)
                 return char:FindFirstChild("Head") or char:FindFirstChild("Neck") or char:FindFirstChild("HumanoidRootPart")
             end
-
             conn1 = RunService.RenderStepped:Connect(function()
                 if not enabled then
                     fovCircle.Visible = false
@@ -494,14 +488,12 @@ local Tab1Scripts = {
                     end
                 end
             end)
-
             conn2 = UserInputService.InputChanged:Connect(function(input)
                 if input.UserInputType == Enum.UserInputType.MouseWheel and enabled then
                     fov = math.clamp(fov + (input.Position.Z > 0 and 20 or -20), 50, 300)
                     fovCircle.Radius = fov
                 end
             end)
-
             enabled = true
             return function()
                 enabled = false
@@ -519,7 +511,6 @@ local Tab1Scripts = {
             local enabled = false
             local fov = 200
             local oldNamecall
-
             local function getClosestPlayer()
                 local closest = nil
                 local closestDist = math.huge
@@ -540,11 +531,9 @@ local Tab1Scripts = {
                 end
                 return closest
             end
-
             local function getBestPart(char)
                 return char:FindFirstChild("Head") or char:FindFirstChild("UpperTorso") or char:FindFirstChild("HumanoidRootPart")
             end
-
             oldNamecall = getrawmetatable(game).__namecall
             getrawmetatable(game).__namecall = newcclosure(function(self, ...)
                 local method = getnamecallmethod()
@@ -567,7 +556,6 @@ local Tab1Scripts = {
                 end
                 return oldNamecall(self, unpack(args))
             end)
-
             local fovCircle = Drawing.new("Circle")
             fovCircle.Radius = fov
             fovCircle.Color = Color3.fromRGB(255, 100, 100)
@@ -575,7 +563,6 @@ local Tab1Scripts = {
             fovCircle.Filled = false
             fovCircle.Transparency = 0.7
             fovCircle.Visible = false
-
             conn = RunService.RenderStepped:Connect(function()
                 if not enabled then
                     fovCircle.Visible = false
@@ -584,7 +571,6 @@ local Tab1Scripts = {
                 fovCircle.Position = Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/2)
                 fovCircle.Visible = true
             end)
-
             enabled = true
             return function()
                 enabled = false
@@ -601,7 +587,6 @@ local Tab1Scripts = {
             local conn
             local enabled = false
             local espData = {}
-
             local function createBox()
                 local box = Drawing.new("Square")
                 box.Thickness = 2
@@ -610,7 +595,6 @@ local Tab1Scripts = {
                 box.Visible = false
                 return box
             end
-
             local function createText()
                 local text = Drawing.new("Text")
                 text.Size = 14
@@ -621,7 +605,6 @@ local Tab1Scripts = {
                 text.Visible = false
                 return text
             end
-
             local function updateESP()
                 for _, data in pairs(espData) do
                     data.box.Visible = false
@@ -629,17 +612,13 @@ local Tab1Scripts = {
                     data.health.Visible = false
                     data.dist.Visible = false
                 end
-
                 if not enabled then return end
-
                 local cam = Camera
                 local localPos = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") and LocalPlayer.Character.HumanoidRootPart.Position
-
                 for _, zombie in ipairs(workspace:GetChildren()) do
                     if zombie.Name == "Zombie" and zombie:FindFirstChild("Humanoid") and zombie:FindFirstChild("HumanoidRootPart") and zombie.Humanoid.Health > 0 then
                         local root = zombie.HumanoidRootPart
                         local hum = zombie.Humanoid
-
                         local screenPos, onScreen = cam:WorldToViewportPoint(root.Position)
                         if onScreen then
                             local data = espData[zombie] or {
@@ -649,22 +628,18 @@ local Tab1Scripts = {
                                 dist = createText()
                             }
                             espData[zombie] = data
-
                             local height = (cam:WorldToViewportPoint(root.Position - Vector3.new(0, 3, 0)).Y - cam:WorldToViewportPoint(root.Position + Vector3.new(0, 4, 0)).Y) / 2
                             local width = height * 0.6
                             data.box.Size = Vector2.new(width, height * 1.8)
                             data.box.Position = Vector2.new(screenPos.X - data.box.Size.X/2, screenPos.Y - data.box.Size.Y/2)
                             data.box.Visible = true
-
                             data.name.Text = zombie.Name
                             data.name.Position = Vector2.new(screenPos.X, screenPos.Y - data.box.Size.Y/2 - 20)
                             data.name.Visible = true
-
                             local healthText = math.floor(hum.Health) .. "/" .. math.floor(hum.MaxHealth)
                             data.health.Text = healthText
                             data.health.Position = Vector2.new(screenPos.X, screenPos.Y + data.box.Size.Y/2 + 5)
                             data.health.Visible = true
-
                             if localPos then
                                 local dist = math.floor((root.Position - localPos).Magnitude)
                                 data.dist.Text = dist .. " studs"
@@ -675,10 +650,8 @@ local Tab1Scripts = {
                     end
                 end
             end
-
             conn = RunService.RenderStepped:Connect(updateESP)
             enabled = true
-
             return function()
                 enabled = false
                 if conn then conn:Disconnect() end
@@ -701,7 +674,6 @@ local Tab1Scripts = {
             local expandSize = 5
             local originalSizes = {}
             local originalTransparencies = {}
-
             local function getTargetParts(char)
                 local parts = {}
                 local head = char:FindFirstChild("Head")
@@ -710,7 +682,6 @@ local Tab1Scripts = {
                 if torso then table.insert(parts, torso) end
                 return parts
             end
-
             local function expandHitbox(part)
                 if not originalSizes[part] then
                     originalSizes[part] = part.Size
@@ -720,14 +691,12 @@ local Tab1Scripts = {
                 part.Transparency = 0.7
                 part.CanCollide = false
             end
-
             local function restoreHitbox(part)
                 if originalSizes[part] then
                     part.Size = originalSizes[part]
                     part.Transparency = originalTransparencies[part]
                 end
             end
-
             conn = RunService.Heartbeat:Connect(function()
                 if not enabled then return end
                 for _, player in ipairs(Players:GetPlayers()) do
@@ -741,7 +710,6 @@ local Tab1Scripts = {
                     end
                 end
             end)
-
             local function cleanup()
                 for part, _ in pairs(originalSizes) do
                     if part and part.Parent then
@@ -751,7 +719,6 @@ local Tab1Scripts = {
                 originalSizes = {}
                 originalTransparencies = {}
             end
-
             enabled = true
             return function()
                 enabled = false
@@ -804,7 +771,6 @@ local function createButtons(tabContent, scripts, layout)
         local c = Instance.new("UICorner")
         c.CornerRadius = UDim.new(0, 8)
         c.Parent = btn
-
         local desc = Instance.new("TextLabel")
         desc.Size = UDim2.new(1, -10, 0, 50)
         desc.BackgroundTransparency = 1
@@ -815,17 +781,14 @@ local function createButtons(tabContent, scripts, layout)
         desc.TextWrapped = true
         desc.Visible = false
         desc.Parent = tabContent
-
         btn.MouseButton1Click:Connect(function()
             toggleScript(s, btn)
             desc.Visible = not desc.Visible
         end)
-
         table.insert(buttons, {btn, desc})
     end
     return buttons
 end
-
 local Tab1Buttons = createButtons(Tab1Content, Tab1Scripts, Tab1Layout)
 local Tab2Buttons = createButtons(Tab2Content, Tab2Scripts, Tab2Layout)
 
